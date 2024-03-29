@@ -1,6 +1,8 @@
+import os
 import sys
 
 from PySide6 import QtWidgets
+
 from view.home_view import HomeView
 
 
@@ -15,7 +17,7 @@ class MainWindow(QtWidgets.QMainWindow):
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
 
-    with open('qss/common_style.qss', 'r') as file_obj:
+    with open(os.path.join(os.path.dirname(__file__), 'qss/common_style.qss'), 'r') as file_obj:
         app.setStyleSheet(file_obj.read())
 
     window = MainWindow()

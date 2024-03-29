@@ -1,6 +1,7 @@
 from typing import Callable
 
 from PySide6 import QtWidgets
+from PySide6.QtCore import QStandardPaths
 
 
 def choose_file(on_result: Callable[[str], None], file_filter: str = None):
@@ -16,3 +17,7 @@ def choose_folder(on_result: Callable[[str], None]):
     folder_path = QtWidgets.QFileDialog.getExistingDirectory()
     if folder_path:
         on_result(folder_path)
+
+
+def get_app_data_path():
+    return QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)

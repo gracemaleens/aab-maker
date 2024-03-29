@@ -22,11 +22,14 @@ class HomeWorker(QThread):
         self.log_error.connect(on_log_error)
 
     def run(self):
-        self._generate_signature()
-        self._generate_google_play_upload_key()
-        self._build_aab()
+        try:
+            self._generate_signature()
+            self._generate_google_play_upload_key()
+            self._build_aab()
 
-        local_persistence.save('data.json', self._model.serialization())
+            local_persistence.save('data.json', self._model.serialization())
+        except Exception as e:
+            self.log_error.emit(f'Action failed: {e}')
 
     def _generate_signature(self):
         if self._model.is_create_new_signature:
