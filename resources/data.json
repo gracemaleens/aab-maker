@@ -1,0 +1,13 @@
+{
+    "apk_path": "D:\\Codes\\Tmp\\aab-maker-test\\0319-4_CatchingKittenTest_1.0_1.apk",
+    "is_create_new_signature": true,
+    "key_store_path": "D:\\Codes\\Signings\\catching-kitten-test.jks",
+    "key_store_password": "123456",
+    "key_alias": "catching-kitten-test",
+    "key_password": "123456",
+    "signatures_config_path": "D:\\Codes\\Signings\\signatures_config.json",
+    "is_generate_google_play_upload_key": true,
+    "encryption_public_key_path": "D:\\Codes\\Tmp\\aab-maker-test\\Catching Kitten Test.pem",
+    "encrypted_key_output_path": "D:\\Codes\\Tmp\\aab-maker-test\\catching-kitten-test-encrypted.zip",
+    "aab_output_path": "D:\\Codes\\Tmp\\aab-maker-test\\0319-4_CatchingKittenTest_1.0_1.aab"
+}

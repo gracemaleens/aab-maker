@@ -1,0 +1,42 @@
+QLineEdit {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px;
+    min-width: 50px;
+    min-height: 20px;
+    background: #fff;
+    selection-background-color: #ccc;
+    selection-color: #000;
+    color: #000;
+    font-size: 12px;
+    font-family: "Microsoft YaHei";
+    font-weight: normal;
+    outline: none;
+}
+
+QLineEdit:hover, QLineEdit:focus {
+    border: 1px solid blue;
+}
+
+QPushButton {
+    min-width: 50px;
+    min-height: 20px;
+    padding: 2px 5px;
+}
+
+QTextBrowser {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px;
+    min-width: 50px;
+    min-height: 20px;
+    line-height: 1.5;
+    background: #fff;
+    selection-background-color: #ccc;
+    selection-color: #000;
+    color: #000;
+    font-size: 12px;
+    font-family: "Microsoft YaHei";
+    font-weight: normal;
+    outline: none;
+}
