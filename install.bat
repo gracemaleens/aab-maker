@@ -1,0 +1,1 @@
+pyinstaller -F --add-data resources:resources --add-data qss:qss -w -n aabmaker app.py

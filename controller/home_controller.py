@@ -99,13 +99,16 @@ class HomeController(BaseHomeController):
 
     @staticmethod
     def _transform_name_with_separator(app_name):
-        app_name = app_name.replace(' ', '')
+        # app_name = app_name.replace(' ', '')
         transformed_app_name = ''
         for i in range(len(app_name)):
             current_char = app_name[i]
-            if current_char.isupper():
-                transformed_app_name += ('-' if i != 0 else '') + current_char.lower()
-            else:
+            if current_char == ' ':
+                transformed_app_name += '-' if i != 0 and transformed_app_name[-1] != '-' else ''
+            elif current_char.isupper():
+                transformed_app_name += ('-' if i != 0 and transformed_app_name[-1] != '-' else '')
+                transformed_app_name += current_char.lower()
+            elif current_char != ':' and current_char != '：' and current_char:
                 transformed_app_name += current_char
 
         return transformed_app_name
@@ -190,9 +193,17 @@ class HomeController(BaseHomeController):
         return str(os.path.basename(self._model.apk_path).replace('.apk', '.aab'))
 
     def run(self):
-        if self._worker and self._worker.isRunning():
-            Logger.warn('Action is running, please wait...')
-            return
+        try:
+            if self._worker and self._worker.isRunning():
+                Logger.warn('Action is running, please wait...')
+                return
 
-        self._worker = HomeWorker(self._model, self._view.output_log, self._view.output_log)
-        self._worker.start()
+            self._worker = HomeWorker(
+                self._model,
+                on_log_info=Logger.info,
+                on_log_warn=Logger.warn,
+                on_log_error=Logger.error
+            )
+            self._worker.start()
+        except Exception as e:
+            Logger.error(f'Error occurred while running action: {e}')

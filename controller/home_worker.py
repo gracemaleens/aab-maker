@@ -11,15 +11,23 @@ from utils import cmd_util
 
 
 class HomeWorker(QThread):
-    log_info = Signal(str)
-    log_error = Signal(str)
+    _log_info = Signal(str)
+    _log_warn = Signal(str)
+    _log_error = Signal(str)
 
-    def __init__(self, model: MakerModel, on_log_info: Callable[[str], None], on_log_error: Callable[[str], None]):
+    def __init__(
+            self,
+            model: MakerModel,
+            on_log_info: Callable[[str], None],
+            on_log_warn: Callable[[str], None],
+            on_log_error: Callable[[str], None]
+    ):
         super().__init__()
 
         self._model = model
-        self.log_info.connect(on_log_info)
-        self.log_error.connect(on_log_error)
+        self._log_info.connect(on_log_info)
+        self._log_warn.connect(on_log_warn)
+        self._log_error.connect(on_log_error)
 
     def run(self):
         try:
@@ -29,49 +37,55 @@ class HomeWorker(QThread):
 
             local_persistence.save('data.json', self._model.serialization())
         except Exception as e:
-            self.log_error.emit(f'Action failed: {e}')
+            self._log_error.emit(f'Action failed: {e}')
 
     def _generate_signature(self):
         if self._model.is_create_new_signature:
-            self.log_info.emit('Generating signature...')
+            self._log_info.emit('Generating signature...')
 
             if not self._model.key_store_path:
-                self.log_error.emit('Please choose a keystore file')
+                self._log_error.emit('Please choose a keystore file')
                 return
 
             if not self._model.key_store_password:
-                self.log_error.emit('Please input password for keystore')
+                self._log_error.emit('Please input password for keystore')
                 return
 
             if not self._model.key_alias:
-                self.log_error.emit('Please input alias for key')
+                self._log_error.emit('Please input alias for key')
                 return
 
             if not self._model.key_password:
-                self.log_error.emit('Please input password for key')
+                self._log_error.emit('Please input password for key')
                 return
 
             if not self._model.signatures_config_path:
-                self.log_error.emit('Please choose a file for signatures config')
+                self._log_error.emit('Please choose a file for signatures config')
                 return
 
-            cmd = (
-                'devkit gen-key '
-                f'--keystore {self._model.key_store_path} '
-                f'--ks-pass {self._model.key_store_password} '
-                f'--alias {self._model.key_alias} '
-                f'--key-pass {self._model.key_password} '
-            )
-            result = cmd_util.run(
-                cmd,
-                on_info=lambda message: self.log_info.emit(message),
-                on_error=lambda message: self.log_error.emit(message)
-            )
-            if result == 0:
-                self.log_info.emit(f'Signature generated successfully: {self._model.key_store_path}')
+            if os.path.exists(self._model.key_store_path):
+                self._log_warn.emit('Keystore file already exists')
 
-                self._save_signature_config()
                 self._copy_signature_to_work_directory()
+                return
+            else:
+                cmd = (
+                    'devkit gen-key '
+                    f'--keystore {self._model.key_store_path} '
+                    f'--ks-pass {self._model.key_store_password} '
+                    f'--alias {self._model.key_alias} '
+                    f'--key-pass {self._model.key_password} '
+                )
+                result = cmd_util.run(
+                    cmd,
+                    on_info=lambda message: self._log_info.emit(message),
+                    on_error=lambda message: self._log_error.emit(message)
+                )
+                if result == 0:
+                    self._log_info.emit(f'Signature generated successfully: {self._model.key_store_path}')
+
+                    self._save_signature_config()
+                    self._copy_signature_to_work_directory()
 
     def _save_signature_config(self):
         signature_config = {
@@ -104,24 +118,24 @@ class HomeWorker(QThread):
     def _copy_signature_to_work_directory(self):
         work_directory = os.path.dirname(self._model.apk_path)
 
-        self.log_info.emit(f'Copying: {self._model.key_store_path} -> {work_directory}')
+        self._log_info.emit(f'Copying: {self._model.key_store_path} -> {work_directory}')
 
         shutil.copy2(self._model.key_store_path, work_directory)
 
     def _generate_google_play_upload_key(self):
         if self._model.is_generate_google_play_upload_key:
-            self.log_info.emit('Generating Google Play upload key...')
+            self._log_info.emit('Generating Google Play upload key...')
 
             if not self._model.encryption_public_key_path:
-                self.log_error.emit('Please choose a file for encryption public key')
+                self._log_error.emit('Please choose a file for encryption public key')
                 return
 
             if not os.path.exists(self._model.encryption_public_key_path):
-                self.log_error.emit('Encryption public key file does not exist')
+                self._log_error.emit('Encryption public key file does not exist')
                 return
 
             if not self._model.encrypted_key_output_path:
-                self.log_error.emit('Please choose a directory for output upload key')
+                self._log_error.emit('Please choose a directory for output upload key')
                 return
 
             cmd = (
@@ -135,31 +149,31 @@ class HomeWorker(QThread):
             )
             result = cmd_util.run(
                 cmd,
-                on_info=lambda message: self.log_info.emit(message),
-                on_error=lambda message: self.log_error.emit(message)
+                on_info=lambda message: self._log_info.emit(message),
+                on_error=lambda message: self._log_error.emit(message)
             )
             if result == 0:
-                self.log_info.emit(
+                self._log_info.emit(
                     f'Google Play upload key generated successfully: {self._model.encrypted_key_output_path}'
                 )
 
     def _build_aab(self):
-        self.log_info.emit('Building aab...')
+        self._log_info.emit('Building aab...')
 
         if not self._model.apk_path:
-            self.log_error.emit('Please choose an apk file')
+            self._log_error.emit('Please choose an apk file')
             return
 
         if not os.path.exists(self._model.apk_path):
-            self.log_error.emit('Apk file does not exist')
+            self._log_error.emit('Apk file does not exist')
             return
 
         if not self._model.is_create_new_signature and not os.path.exists(self._model.key_store_path):
-            self.log_error.emit('Keystore file does not exist')
+            self._log_error.emit('Keystore file does not exist')
             return
 
         if not self._model.aab_output_path:
-            self.log_error.emit('Please choose a directory for output aab')
+            self._log_error.emit('Please choose a directory for output aab')
             return
 
         cmd = (
@@ -175,6 +189,6 @@ class HomeWorker(QThread):
         )
         cmd_util.run(
             cmd,
-            on_info=lambda message: self.log_info.emit(message),
-            on_error=lambda message: self.log_error.emit(message)
+            on_info=lambda message: self._log_info.emit(message),
+            on_error=lambda message: self._log_error.emit(message)
         )
